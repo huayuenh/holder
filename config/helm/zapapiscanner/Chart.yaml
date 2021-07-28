@@ -1,0 +1,10 @@
+---
+apiVersion: v1
+name: zapapiscanner
+description: This chart manages the zapapiscanner micro-service.
+version: 0.0.1
+appVersion: 0.0.1
+icon: https://avatars.github.ibm.com/u/56137?s=400
+maintainers:
+- name: Abhsihek Dhawan 
+  email: abhdhawa@in.ibm.com

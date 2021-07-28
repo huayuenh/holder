@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.global.name }}-configuration
+  namespace: {{ .Values.global.namespace }}
+data:
+  iamTokenUrl: {{ .Values.global.iamTokenUrl | quote }}
+  providerId: {{ .Values.global.providerId | quote }}
+  createUpdateDeleteNoteId: {{ .Values.global.createUpdateDeleteNoteId | quote }}
+  createUpdateDeleteOccurrenceId: {{ .Values.global.createUpdateDeleteOccurrenceId | quote }}
+  TARGET_APIS: {{ .Values.global.TARGET_APIS | quote }}
+  GITHUB_ISSUE_ASSIGNEE: {{ .Values.global.GITHUB_ISSUE_ASSIGNEE | quote }}

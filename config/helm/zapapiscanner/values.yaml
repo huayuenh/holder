@@ -1,0 +1,18 @@
+global:
+
+  name: 'zapapiscanner'
+  namebase: 'zapapiscannerbase'
+  namespace: 'zapbase'
+  registrynamespace: 'secadv_dev'
+  curlcontainer: 'curlcontainer'
+  tag:
+  iamTokenUrl : 'https://iam.test.cloud.ibm.com/identity/token' 
+  providerId: 'providerforzapapiscan'
+  createUpdateDeleteNoteId: 'noteForZapScan'
+  createUpdateDeleteOccurrenceId: 'occurrenceForZapScan'
+  TARGET_APIS: 'findingsAPIFindingsGraph,findingsAPIFindingsProviders,findingsAPIFindingsNotes,findingsAPIFindingsOccurrences,notificationsAPIchannels,findingsAPIKeysConfiguration'
+  curlimage: 'buildpack-deps:curl'
+  GITHUB_ISSUE_ASSIGNEE: 'abhdhawa'
+  GITHUB_LABELS: 
+  clusterNamespace: 'zapbase'
+  

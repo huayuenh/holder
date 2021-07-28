@@ -1,0 +1,135 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.global.namebase }}
+  namespace: {{ .Values.global.namespace }}
+spec:
+  template:
+    metadata:
+        namespace: {{ .Values.global.namespace }}
+        labels:
+          job: {{ .Values.global.namebase }}
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: servicename
+                operator: In
+                values:
+                - security-advisor-zap
+      restartPolicy: Never
+      containers:
+      - name: {{ .Values.global.curlcontainer }}
+        image: {{ .Values.global.curlimage }}
+        command: ["/bin/sh", "-c"]
+        args: ["sleep 180; curl localhost:9080/scan"]
+        ports:
+        - containerPort: 80
+      - name: {{ .Values.global.name }}
+        image: us.icr.io/{{ .Values.global.registrynamespace }}/{{ .Values.global.name }}:{{ .Values.global.tag | default "dummy" }}
+        ports:
+        - containerPort: 9080
+        env:
+### ENVIRONMENT VARIABLES - IAM SECRET
+        - name: iamConfig
+          valueFrom:
+            secretKeyRef:
+              name: sa-iam-secrets
+              key: iamConfig
+### ENVIRONMENT VARIABLES - SSL CERTIFICATES SECRET
+        - name: root_cert
+          valueFrom:
+            secretKeyRef:
+              name: zapapiscanner-certificates-credentials
+              key: root_cert
+        - name: tls_cert
+          valueFrom:
+            secretKeyRef:
+              name: zapapiscanner-certificates-credentials
+              key: tls_cert
+        - name: tls_key
+          valueFrom:
+            secretKeyRef:
+              name: zapapiscanner-certificates-credentials
+              key: tls_key
+##### From Config map
+        - name: iamTokenUrl
+          valueFrom:
+            configMapKeyRef:
+              name: zapapiscanner-configuration
+              key: iamTokenUrl
+        - name: providerId
+          valueFrom:
+            configMapKeyRef:
+              name: zapapiscanner-configuration
+              key: providerId 
+        - name: createUpdateDeleteNoteId
+          valueFrom:
+            configMapKeyRef:
+              name: zapapiscanner-configuration
+              key: createUpdateDeleteNoteId 
+        - name: createUpdateDeleteOccurrenceId
+          valueFrom:
+            configMapKeyRef:
+              name: zapapiscanner-configuration
+              key: createUpdateDeleteOccurrenceId    
+        - name: TARGET_APIS
+          valueFrom:
+            configMapKeyRef:
+              name: zapapiscanner-configuration
+              key: TARGET_APIS   
+        - name: GITHUB_ISSUE_ASSIGNEE
+          valueFrom:
+            configMapKeyRef:
+              name: zapapiscanner-configuration
+              key: GITHUB_ISSUE_ASSIGNEE                                                                    
+##### From Secrets
+        - name: accountId
+          valueFrom:
+            secretKeyRef:
+              name: zapapiscanner-secrets
+              key: accountId
+        - name: instanceCrn
+          valueFrom:
+            secretKeyRef:
+              name: zapapiscanner-secrets
+              key: instanceCrn
+        - name: rootKeyId
+          valueFrom:
+            secretKeyRef:
+              name: zapapiscanner-secrets
+              key: rootKeyId                                    
+        - name: apiKey
+          valueFrom:
+            secretKeyRef:
+              name: zapapiscanner-secrets
+              key: apiKey
+        - name: SLACK_CHANNEL
+          valueFrom:
+            secretKeyRef:
+              name: zapapiscanner-secrets
+              key: SLACK_CHANNEL
+        - name: SLACK_END_POINT
+          valueFrom:
+            secretKeyRef:
+              name: zapapiscanner-secrets
+              key: SLACK_END_POINT 
+        - name: GITHUB_REPO_URL
+          valueFrom:
+            secretKeyRef:
+              name: zapapiscanner-secrets
+              key: GITHUB_REPO_URL 
+        - name: GITHUB_ACCESS_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: zapapiscanner-secrets
+              key: GITHUB_ACCESS_TOKEN 
+        - name: GITHUB_API_URL
+          valueFrom:
+            secretKeyRef:
+              name: zapapiscanner-secrets
+              key: GITHUB_API_URL
+      imagePullSecrets:
+        - name: bluemix-{{ .Values.global.clusterNamespace }}-secret  #                                                             
