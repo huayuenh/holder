@@ -127,10 +127,18 @@ echo "=========================================================="
 echo "DEPLOYING using manifest"
 set -x
 kubectl apply --namespace ${CLUSTER_NAMESPACE} -f ${DEPLOYMENT_FILE} 
+
 set +x
+SERVICE_NAME="zap-service"
+kubectl expose deployment zap-deployment --type=NodePort --name=${SERVICE_NAME} --namespace ${CLUSTER_NAMESPACE}
+
+IP_ADDRESS=$(kubectl get nodes -o json | jq -r '[.items[] | .status.addresses[] | select(.type == "ExternalIP") | .address] | .[0]')
+PORT=$(kubectl get service -n  "$CLUSTER_NAMESPACE" "${SERVICE_NAME}" -o json | jq -r '.spec.ports[0].nodePort')
+echo "URL: ${IP_ADDRESS}:${PORT}"
 # Extract name from actual Kube deployment resource owning the deployed container image 
 # Ensure that the image match the repository, image name and tag without the @ sha id part to handle
 # case when image is sha-suffixed or not - ie:
 # us.icr.io/sample/hello-containers-20190823092122682:1-master-a15bd262-20190823100927
 # or
 # us.icr.io/sample/hello-containers-20190823092122682:1-master-a15bd262-20190823100927@sha256:9b56a4cee384fa0e9939eee5c6c0d9912e52d63f44fa74d1f93f3496db773b2e
+#kubectl describe services zap-service
