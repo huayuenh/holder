@@ -19,25 +19,12 @@ echo "REGISTRY_NAMESPACE=${REGISTRY_NAMESPACE}"
 echo "DEPLOYMENT_FILE=${DEPLOYMENT_FILE}"
 echo "KUBERNETES_SERVICE_ACCOUNT_NAME=${KUBERNETES_SERVICE_ACCOUNT_NAME}"
 
-echo "Use for custom Kubernetes cluster target:"
-echo "KUBERNETES_MASTER_ADDRESS=${KUBERNETES_MASTER_ADDRESS}"
-echo "KUBERNETES_MASTER_PORT=${KUBERNETES_MASTER_PORT}"
-echo "KUBERNETES_SERVICE_ACCOUNT_TOKEN=${KUBERNETES_SERVICE_ACCOUNT_TOKEN}"
-
 IMAGE="us.icr.io/tektonhh/zapscanner@sha256:31e5f19ffa2eb7c14156a912dfebdd8f093f7ce72e5c03ca05a340c954606a19"
 echo "IMAGE $IMAGE"
 
 echo "PIPELINE_KUBERNETES_CLUSTER_NAME=${PIPELINE_KUBERNETES_CLUSTER_NAME}"
 echo "CLUSTER_NAMESPACE=${CLUSTER_NAMESPACE}"
 
-# If custom cluster credentials available, connect to this cluster instead
-if [ ! -z "${KUBERNETES_MASTER_ADDRESS}" ]; then
-  echo "RUNNING KUBE MASTER ADDRESS"
-  kubectl config set-cluster custom-cluster --server=https://${KUBERNETES_MASTER_ADDRESS}:${KUBERNETES_MASTER_PORT} --insecure-skip-tls-verify=true
-  kubectl config set-credentials sa-user --token="${KUBERNETES_SERVICE_ACCOUNT_TOKEN}"
-  kubectl config set-context custom-context --cluster=custom-cluster --user=sa-user --namespace="${CLUSTER_NAMESPACE}"
-  kubectl config use-context custom-context
-fi
 # Use kubectl auth to check if the kubectl client configuration is appropriate
 # check if the current configuration can create a deployment in the target namespace
 echo "Check ability to create a kubernetes deployment in ${CLUSTER_NAMESPACE} using kubectl CLI"
@@ -117,10 +104,3 @@ kubectl expose deployment zap-deployment --type=NodePort --name=${SERVICE_NAME} 
 IP_ADDRESS=$(kubectl get nodes -o json | jq -r '[.items[] | .status.addresses[] | select(.type == "ExternalIP") | .address] | .[0]')
 PORT=$(kubectl get service -n  "$CLUSTER_NAMESPACE" "${SERVICE_NAME}" -o json | jq -r '.spec.ports[0].nodePort')
 echo "URL: ${IP_ADDRESS}:${PORT}"
-# Extract name from actual Kube deployment resource owning the deployed container image 
-# Ensure that the image match the repository, image name and tag without the @ sha id part to handle
-# case when image is sha-suffixed or not - ie:
-# us.icr.io/sample/hello-containers-20190823092122682:1-master-a15bd262-20190823100927
-# or
-# us.icr.io/sample/hello-containers-20190823092122682:1-master-a15bd262-20190823100927@sha256:9b56a4cee384fa0e9939eee5c6c0d9912e52d63f44fa74d1f93f3496db773b2e
-#kubectl describe services zap-service
